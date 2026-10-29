@@ -70,7 +70,7 @@ export function Uploader() {
         }}
         onDrop={drop}
         className={clsx(
-          "flex cursor-pointer flex-col items-center gap-2 px-6 py-12 text-center",
+          "relative flex cursor-pointer flex-col items-center gap-2 px-6 py-12 text-center",
           "border border-dashed border-e2e-field-stroke bg-e2e-field-fill transition-colors motion-reduce:transition-none",
           "hover:border-e2e-white-50 has-focus-visible:border-e2e-white-80",
           "data-dragging:border-e2e-paper-0 data-dragging:bg-e2e-white-6",
@@ -80,7 +80,10 @@ export function Uploader() {
           type="file"
           accept={IMAGE_TYPES.join(",")}
           aria-label="Choose an image"
-          className="sr-only"
+          // Invisible but over the whole dropzone, so the control the accessibility tree lists is the one a click hits.
+          // An empty title hides Chrome's "No file chosen" tooltip.
+          title=""
+          className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-default"
           disabled={uploading}
           onChange={(event) => {
             pick(event.target.files?.[0]);
@@ -110,14 +113,23 @@ export function Uploader() {
         {uploading ? "Uploading…" : "Upload"}
       </LightButton>
 
-      {uploaded ? <FileCard file={uploaded} /> : null}
+      {uploaded ? <FileCard key={uploaded.pathname} file={uploaded} /> : null}
     </section>
   );
 }
 
+// The card appears below the fold on most screens, so it scrolls into view once per upload.
+function revealCard(card: HTMLDivElement | null) {
+  card?.scrollIntoView({ block: "nearest" });
+}
+
 function FileCard({ file }: { file: Uploaded }) {
   return (
-    <div data-testid="file-card" className="mt-2 flex flex-col gap-4 border-t border-e2e-hairline pt-6">
+    <div
+      ref={revealCard}
+      data-testid="file-card"
+      className="mt-2 flex flex-col gap-4 border-t border-e2e-hairline pt-6"
+    >
       <div className="relative aspect-16/10 bg-e2e-canvas">
         <Image
           src={fileUrl(file.pathname)}
