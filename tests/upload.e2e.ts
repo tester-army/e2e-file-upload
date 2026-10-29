@@ -12,7 +12,7 @@ import { PDF, PHOTO, agentSkip, blobSkip, dropFile, panel, readTestFile, sha256,
 async function expectPhotoUploaded(screen: Screen, browser: Browser, uploads: Uploads): Promise<string> {
   const pathname = await uploads.fromCard(screen);
   await expect(screen.getByTestId("file-name")).toHaveText("photo.png");
-  await expect(screen.getByTestId("file-details")).toHaveText("8.4 KB · PNG");
+  await expect(screen.getByTestId("file-details")).toHaveText("207 KB · PNG");
 
   // The preview loaded from our file route, at the photo's own size.
   const previewSize = () =>
@@ -20,7 +20,7 @@ async function expectPhotoUploaded(screen: Screen, browser: Browser, uploads: Up
       const preview = document.querySelector<HTMLImageElement>('[data-testid="file-card"] img');
       return preview?.complete ? `${preview.naturalWidth}x${preview.naturalHeight}` : null;
     });
-  await expect.poll(previewSize).toBe("600x400");
+  await expect.poll(previewSize).toBe("1200x630");
 
   // What Blob stored.
   const photo = await readTestFile(PHOTO);
@@ -39,7 +39,9 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
       await agent.act("upload the image {file}", { params: { file: PHOTO.path } });
 
       await expectPhotoUploaded(screen, browser, uploads);
-      await agent.assert("the preview shows an orange sun above grey hills", { vision: true });
+      await agent.assert("the preview shows the e2e wordmark above the words Open Source AI Testing Framework", {
+        vision: true,
+      });
     },
   );
 
@@ -65,7 +67,7 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
     await expect(screen.getByTestId("dropzone")).toContainText("Drop to add it");
     await dropFile(browser, PHOTO, ["dragover", "drop"]);
     await expect(screen.getByTestId("dropzone")).toContainText("Drop an image here");
-    await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 8.4 KB");
+    await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 207 KB");
 
     await panel(screen).getByRole("button", "Upload").tap();
     await expectPhotoUploaded(screen, browser, uploads);

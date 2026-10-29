@@ -45,6 +45,6 @@ test("a failed upload says so", async ({ app, screen, browser }) => {
   await panel(screen).getByRole("button", "Upload").tap();
 
   await expect(panel(screen).getByRole("alert")).toHaveText("Couldn't upload photo.png. Try again.");
-  await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 8.4 KB");
+  await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 207 KB");
   await expect(panel(screen).getByRole("button", "Upload")).toBeEnabled();
 });
