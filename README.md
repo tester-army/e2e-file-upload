@@ -35,7 +35,7 @@ Uploads go to your own Blob store. In the [Vercel dashboard](https://vercel.com/
 
 ## End-to-end tests
 
-`tests/upload.e2e.ts` uploads to the real store. The agent uploads `photo.png` with one goal, "upload the image tests/files/photo.png", and a screenshot check confirms the preview. The other tests use locators: the download has the same SHA-256 as the file and as the stored blob, a dropped file gives the same card as the picker, and Node calls the upload route directly to show that Blob refuses a 5 MB image and a PDF even when the page's checks are skipped. Each test checks the stored file through Blob's API and deletes what it uploaded.
+`tests/upload.e2e.ts` uploads to the real store. The agent uploads `photo.png` with one goal, "upload the image tests/files/photo.png", and a screenshot check confirms the preview. The other tests use locators: the download has the same SHA-256 as the file and as the stored blob, a file named `café menu #1 (100%).png` keeps its name, a dropped file gives the same card as the picker, and Node calls the upload route directly to show that Blob refuses a 5 MB image and a PDF even when the page's checks are skipped. Each test checks the stored file through Blob's API and deletes what it uploaded.
 
 e2e can't drag a file from the desktop, so the drop test builds the `File` in the page and sends the events a real drop sends. `tests/home.e2e.ts` checks the page's own refusals and a failed upload with locators only, and needs no keys.
 

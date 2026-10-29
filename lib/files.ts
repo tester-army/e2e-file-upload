@@ -1,4 +1,4 @@
-// What the page accepts. The upload token carries the same limits, so Blob refuses what the page would.
+// Shared by the page and the upload token, so Blob refuses what the page would.
 
 const FORMATS: Record<string, string> = { "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WebP" };
 
@@ -9,7 +9,6 @@ export const MAX_BYTES = 4_000_000;
 
 export const LIMITS = "PNG, JPEG, or WebP, up to 4 MB";
 
-/** Why the page refuses a file, or null when it can be uploaded. */
 export function checkFile(file: { name: string; type: string; size: number }): string | null {
   if (!IMAGE_TYPES.includes(file.type)) return `${file.name} isn't a PNG, JPEG, or WebP image.`;
   if (file.size > MAX_BYTES) return `${file.name} is ${formatSize(file.size)}. Images can be up to 4 MB.`;
@@ -39,8 +38,12 @@ export function isUploadPathname(pathname: string): boolean {
   return UPLOAD_PATHNAME.test(pathname);
 }
 
-/** Where the app serves an uploaded file: the store is private, so a blob's own URL needs a token. */
+// Blob's get() puts the pathname into the blob's URL as it is, so a name with #, ?, or % needs encoding.
+export function encodePathname(pathname: string): string {
+  return pathname.split("/").map(encodeURIComponent).join("/");
+}
+
+// The store is private, so files are served by our route, not by the blob's own URL.
 export function fileUrl(pathname: string, { download = false } = {}): string {
-  const path = pathname.split("/").map(encodeURIComponent).join("/");
-  return `/api/files/${path}${download ? "?download=1" : ""}`;
+  return `/api/files/${encodePathname(pathname)}${download ? "?download=1" : ""}`;
 }

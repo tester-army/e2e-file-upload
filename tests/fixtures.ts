@@ -32,10 +32,8 @@ export function sha256(bytes: Uint8Array): string {
 // Next.js adds its own role="alert" (the route announcer), so queries stay inside the upload panel.
 export const panel = (screen: Screen) => screen.getByRole("region", "Upload an image");
 
-/**
- * Drops a file on the dropzone. e2e can't drag a file from the desktop, so the page builds the File and gets the
- * events a real drop sends. Only the OS part is skipped: the events' `isTrusted` is false.
- */
+// e2e can't drag a file from the desktop, so the page builds the File and gets the events a real drop sends,
+// with `isTrusted` false.
 export async function dropFile(
   browser: Browser,
   file: TestFile,
@@ -60,9 +58,7 @@ export async function dropFile(
 export type Uploads = {
   /** Waits for the card and reads the blob's pathname from its Download link. */
   fromCard(screen: Screen): Promise<string>;
-  /** Remembers a pathname a test may have uploaded to. */
   track(pathname: string): void;
-  /** The blob's bytes, read from the store with the read-write token. */
   bytes(pathname: string): Promise<Buffer>;
 };
 
@@ -84,7 +80,9 @@ export const test = base.extend<{ uploads: Uploads }>({
         pathnames.add(pathname);
       },
       bytes: async (pathname) => {
-        const result = await get(pathname, { access: "private", useCache: false });
+        // get() puts the pathname into a URL as it is.
+        const encoded = pathname.split("/").map(encodeURIComponent).join("/");
+        const result = await get(encoded, { access: "private", useCache: false });
         if (result?.statusCode !== 200) throw new Error(`${pathname} isn't in the store`);
         return Buffer.from(await new Response(result.stream).arrayBuffer());
       },

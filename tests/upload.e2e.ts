@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { describe, type Browser } from "@e2e-dev/web";
 import { head } from "@vercel/blob";
@@ -9,12 +11,17 @@ import { expect, type Screen } from "e2e";
 import { PDF, PHOTO, agentSkip, blobSkip, dropFile, panel, readTestFile, sha256, test, type Uploads } from "./fixtures";
 
 // The same card and the same blob, whichever way the photo came in.
-async function expectPhotoUploaded(screen: Screen, browser: Browser, uploads: Uploads): Promise<string> {
+async function expectPhotoUploaded(
+  screen: Screen,
+  browser: Browser,
+  uploads: Uploads,
+  name = "photo.png",
+): Promise<string> {
   const pathname = await uploads.fromCard(screen);
-  await expect(screen.getByTestId("file-name")).toHaveText("photo.png");
+  await expect(screen.getByTestId("file-name")).toHaveText(name);
   await expect(screen.getByTestId("file-details")).toHaveText("207 KB · PNG");
 
-  // The preview loaded from our file route, at the photo's own size.
+  // The preview loaded through our file route, at the photo's own size.
   const previewSize = () =>
     browser.evaluate(() => {
       const preview = document.querySelector<HTMLImageElement>('[data-testid="file-card"] img');
@@ -22,7 +29,6 @@ async function expectPhotoUploaded(screen: Screen, browser: Browser, uploads: Up
     });
   await expect.poll(previewSize).toBe("1200x630");
 
-  // What Blob stored.
   const photo = await readTestFile(PHOTO);
   expect(await head(pathname)).toMatchObject({ size: photo.length, contentType: "image/png" });
   return pathname;
@@ -35,7 +41,7 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
     async ({ app, screen, agent, browser, uploads }) => {
       await app.open("/");
 
-      // The agent finds the dropzone, attaches the file through its file chooser, and presses Upload.
+      // One goal: the agent finds the dropzone, attaches the file, and presses Upload.
       await agent.act("upload the image {file}", { params: { file: PHOTO.path } });
 
       await expectPhotoUploaded(screen, browser, uploads);
@@ -58,6 +64,25 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
     const photo = sha256(await readTestFile(PHOTO));
     expect(sha256(await readFile(file.absolutePath))).toBe(photo);
     expect(sha256(await uploads.bytes(pathname))).toBe(photo);
+  });
+
+  test("a name with spaces and symbols keeps working", async ({ app, screen, browser, uploads }) => {
+    // #, %, and spaces mean something in a URL, so every step that builds one has to encode the name.
+    const name = "café menu #1 (100%).png";
+    const folder = await mkdtemp(join(tmpdir(), "e2e-file-upload-"));
+    try {
+      await writeFile(join(folder, name), await readTestFile(PHOTO));
+      await app.open("/");
+      await screen.getByLabel("Choose an image").setInputFiles(join(folder, name));
+      await panel(screen).getByRole("button", "Upload").tap();
+      await expectPhotoUploaded(screen, browser, uploads, name);
+
+      const file = await browser.waitForDownload(() => screen.getByRole("link", "Download").tap());
+      expect(file.suggestedFilename).toBe(name);
+      expect(sha256(await readFile(file.absolutePath))).toBe(sha256(await readTestFile(PHOTO)));
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+    }
   });
 
   test("drag-and-drop works like the picker", async ({ app, screen, browser, uploads }) => {
