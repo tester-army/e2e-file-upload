@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# e2e-file-upload
 
-## Getting Started
+An image upload to Vercel Blob, used as an example of end-to-end testing file uploads, drag-and-drop, and downloads with [e2e](https://www.npmjs.com/package/e2e).
 
-First, run the development server:
+## How it works
+
+- **Upload panel** (`components/uploader.tsx`) takes an image from the file picker or a drop, and checks its type and size before anything is sent.
+- **`POST /api/upload`** (`app/api/upload/route.ts`) gives the browser a short-lived upload token with the same limits, and the browser sends the file straight to a private Vercel Blob store.
+- **`GET /api/files/…`** (`app/api/files/[...pathname]/route.ts`) streams the stored file back for the preview and the Download button.
+
+The page takes PNG, JPEG, and WebP images up to 4 MB (`lib/files.ts`). There is no database: Blob holds the files.
+
+### Test files
+
+| File                       | Result                                  |
+| -------------------------- | --------------------------------------- |
+| `tests/files/photo.png`    | Uploaded                                |
+| `tests/files/invoice.pdf`  | Refused: not a PNG, JPEG, or WebP image |
+| A 5 MB PNG the test writes | Refused: over 4 MB                      |
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).
