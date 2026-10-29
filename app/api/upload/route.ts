@@ -2,8 +2,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 
 import { IMAGE_TYPES, MAX_BYTES, isUploadPathname } from "@/lib/files";
 
-// Hands the browser a short-lived token for one upload, and Blob enforces its limits even when the page's own check
-// is skipped. There's no sign-in here: a real app checks who is uploading before it returns a token.
+// No sign-in here: a real app checks who is uploading before it hands out a token.
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as HandleUploadBody;

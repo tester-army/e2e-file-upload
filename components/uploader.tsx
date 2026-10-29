@@ -18,7 +18,7 @@ export function Uploader() {
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState<Uploaded | null>(null);
 
-  // The picker and a drop both end here, so the same checks apply to both. `accept` only filters the picker.
+  // `accept` only filters the picker, so a dropped file goes through the same check here.
   function pick(picked: File | undefined) {
     if (!picked || uploading) return;
     const problem = checkFile(picked);
@@ -32,7 +32,6 @@ export function Uploader() {
     pick(event.dataTransfer.files[0]);
   }
 
-  // The file goes from the browser straight to Blob, with a token from POST /api/upload.
   async function send(image: File) {
     setUploading(true);
     setError(null);
@@ -118,13 +117,13 @@ export function Uploader() {
   );
 }
 
-// The card appears below the fold on most screens, so it scrolls into view once per upload.
+// The card lands below the fold, so it scrolls into view once per upload.
 function revealCard(card: HTMLDivElement | null) {
   card?.scrollIntoView({ block: "nearest" });
 }
 
 function FileCard({ file }: { file: Uploaded }) {
-  // 16:10 until the image loads, then the image's own shape, so a wide or square image gets no bars.
+  // 16:10 until the image loads, then its own shape, so it gets no bars.
   const [aspectRatio, setAspectRatio] = useState(16 / 10);
 
   return (
