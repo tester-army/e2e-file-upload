@@ -3,12 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { test } from "@e2e-dev/web";
-import { expect, type Screen } from "e2e";
+import { expect } from "e2e";
 
-import { PDF, PHOTO, dropFile } from "./fixtures";
-
-// Next.js adds its own role="alert" (the route announcer), so queries stay inside the upload panel.
-const panel = (screen: Screen) => screen.getByRole("region", "Upload an image");
+import { PDF, PHOTO, dropFile, panel } from "./fixtures";
 
 test("the panel is ready for an image", async ({ app, screen }) => {
   await app.open("/");
