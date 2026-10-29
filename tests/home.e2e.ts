@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { test } from "@e2e-dev/web";
 import { expect, type Screen } from "e2e";
 
-import { PDF, dropFile } from "./fixtures";
+import { PDF, PHOTO, dropFile } from "./fixtures";
 
 // Next.js adds its own role="alert" (the route announcer), so queries stay inside the upload panel.
 const panel = (screen: Screen) => screen.getByRole("region", "Upload an image");
@@ -38,4 +38,16 @@ test("an image over 4 MB is refused", async ({ app, screen }) => {
   } finally {
     await rm(folder, { recursive: true, force: true });
   }
+});
+
+test("a failed upload says so", async ({ app, screen, browser }) => {
+  // Our token route fails, so nothing reaches Blob and no key is needed.
+  await browser.route("**/api/upload", (route) => route.fulfill({ status: 500, json: { error: "Down for the test" } }));
+  await app.open("/");
+  await screen.getByLabel("Choose an image").setInputFiles(PHOTO.path);
+  await panel(screen).getByRole("button", "Upload").tap();
+
+  await expect(panel(screen).getByRole("alert")).toHaveText("Couldn't upload photo.png. Try again.");
+  await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 8.4 KB");
+  await expect(panel(screen).getByRole("button", "Upload")).toBeEnabled();
 });
