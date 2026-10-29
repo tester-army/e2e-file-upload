@@ -1,0 +1,41 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { test } from "@e2e-dev/web";
+import { expect, type Screen } from "e2e";
+
+import { PDF, dropFile } from "./fixtures";
+
+// Next.js adds its own role="alert" (the route announcer), so queries stay inside the upload panel.
+const panel = (screen: Screen) => screen.getByRole("region", "Upload an image");
+
+test("the panel is ready for an image", async ({ app, screen }) => {
+  await app.open("/");
+  await expect(screen.getByTestId("dropzone")).toContainText("Drop an image here");
+  await expect(screen.getByText("PNG, JPEG, or WebP, up to 4 MB")).toBeVisible();
+  await expect(panel(screen).getByRole("button", "Upload")).not.toBeEnabled();
+});
+
+test("a PDF is refused", async ({ app, screen, browser }) => {
+  await app.open("/");
+  await dropFile(browser, PDF);
+  await expect(panel(screen).getByRole("alert")).toHaveText("invoice.pdf isn't a PNG, JPEG, or WebP image.");
+  await expect(panel(screen).getByRole("button", "Upload")).not.toBeEnabled();
+});
+
+test("an image over 4 MB is refused", async ({ app, screen }) => {
+  // 5 MB stays out of git: the test writes it, and setInputFiles takes an absolute path.
+  const folder = await mkdtemp(join(tmpdir(), "e2e-file-upload-"));
+  try {
+    const big = join(folder, "big.png");
+    await writeFile(big, Buffer.alloc(5_000_000));
+
+    await app.open("/");
+    await screen.getByLabel("Choose an image").setInputFiles(big);
+    await expect(panel(screen).getByRole("alert")).toHaveText("big.png is 5 MB. Images can be up to 4 MB.");
+    await expect(panel(screen).getByRole("button", "Upload")).not.toBeEnabled();
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
