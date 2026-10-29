@@ -124,13 +124,16 @@ function revealCard(card: HTMLDivElement | null) {
 }
 
 function FileCard({ file }: { file: Uploaded }) {
+  // 16:10 until the image loads, then the image's own shape, so a wide or square image gets no bars.
+  const [aspectRatio, setAspectRatio] = useState(16 / 10);
+
   return (
     <div
       ref={revealCard}
       data-testid="file-card"
       className="mt-2 flex flex-col gap-4 border-t border-e2e-hairline pt-6"
     >
-      <div className="relative aspect-16/10 bg-e2e-canvas">
+      <div className="relative max-h-96 bg-e2e-canvas ring-1 ring-e2e-hairline-strong" style={{ aspectRatio }}>
         <Image
           src={fileUrl(file.pathname)}
           alt={`Preview of ${file.name}`}
@@ -138,6 +141,7 @@ function FileCard({ file }: { file: Uploaded }) {
           unoptimized
           sizes="440px"
           className="object-contain"
+          onLoad={(event) => setAspectRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
         />
       </div>
       <div className="flex items-center justify-between gap-4">
