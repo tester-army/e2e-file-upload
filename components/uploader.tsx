@@ -5,8 +5,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import { useState, type DragEvent } from "react";
 
-import { LightButton } from "@/components/ui/light-button";
-import { OUTLINE_BUTTON } from "@/components/ui/outline-button";
+import { Button, buttonClassName } from "@/components/ui/button";
 import { IMAGE_TYPES, LIMITS, checkFile, fileUrl, formatName, formatSize, uploadPathname } from "@/lib/files";
 
 type Uploaded = { pathname: string; name: string; size: number; type: string };
@@ -45,7 +44,7 @@ export function Uploader() {
       setFile(null);
     } catch (cause) {
       console.error(cause);
-      setError(`Couldn't upload ${image.name}. Try again.`);
+      setError(`couldn't upload ${image.name}. try again.`);
     } finally {
       setUploading(false);
     }
@@ -53,8 +52,8 @@ export function Uploader() {
 
   return (
     <section
-      aria-label="Upload an image"
-      className="flex flex-col gap-4 border border-e2e-hairline-strong bg-e2e-panel p-5"
+      aria-label="upload an image"
+      className="flex flex-col gap-e2e-2 border border-e2e-neutral-800 bg-e2e-neutral-800/40 p-e2e-3"
     >
       <label
         data-testid="dropzone"
@@ -69,16 +68,16 @@ export function Uploader() {
         }}
         onDrop={drop}
         className={clsx(
-          "relative flex cursor-pointer flex-col items-center gap-2 px-6 py-12 text-center",
-          "border border-dashed border-e2e-field-stroke bg-e2e-field-fill transition-colors motion-reduce:transition-none",
-          "hover:border-e2e-white-50 has-focus-visible:border-e2e-white-80",
-          "data-dragging:border-e2e-paper-0 data-dragging:bg-e2e-white-6",
+          "relative flex cursor-pointer flex-col items-center gap-e2e-1 px-e2e-3 py-e2e-6 text-center",
+          "border border-dashed border-e2e-neutral-700 bg-e2e-neutral-800 transition-colors motion-reduce:transition-none",
+          "hover:border-e2e-neutral-500 has-focus-visible:outline-2 has-focus-visible:outline-e2e-green",
+          "data-dragging:border-e2e-green",
         )}
       >
         <input
           type="file"
           accept={IMAGE_TYPES.join(",")}
-          aria-label="Choose an image"
+          aria-label="choose an image"
           // Invisible but over the whole dropzone, so the control the accessibility tree lists is the one a click hits.
           // An empty title hides Chrome's "No file chosen" tooltip.
           title=""
@@ -90,27 +89,25 @@ export function Uploader() {
             event.target.value = "";
           }}
         />
-        <span className="type-h3-display text-e2e-text-bright">
-          {dragging ? "Drop to add it" : "Drop an image here"}
-        </span>
-        <span className="type-code-s text-e2e-text-soft underline underline-offset-4">or choose a file</span>
-        <span className="mt-2 type-caption text-e2e-text-faint">{LIMITS}</span>
+        <span className="type-h5 text-e2e-off-white">{dragging ? "drop to add it" : "drop an image here"}</span>
+        <span className="type-body-s text-e2e-blue-400 underline underline-offset-4">or choose a file</span>
+        <span className="mt-e2e-1 type-caption text-e2e-neutral-500">{LIMITS}</span>
       </label>
 
       {file ? (
-        <p data-testid="picked-file" className="type-code-s text-e2e-text-secondary">
+        <p data-testid="picked-file" className="type-code-s text-e2e-neutral-300">
           {file.name} · {formatSize(file.size)}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="type-body-s text-e2e-accent">
+        <p role="alert" className="type-body-s text-e2e-mint">
           {error}
         </p>
       ) : null}
 
-      <LightButton disabled={!file || uploading} onClick={() => file && send(file)}>
-        {uploading ? "Uploading…" : "Upload"}
-      </LightButton>
+      <Button disabled={!file || uploading} onClick={() => file && send(file)} className="w-full">
+        {uploading ? "uploading…" : "upload"}
+      </Button>
 
       {uploaded ? <FileCard key={uploaded.pathname} file={uploaded} /> : null}
     </section>
@@ -130,12 +127,12 @@ function FileCard({ file }: { file: Uploaded }) {
     <div
       ref={revealCard}
       data-testid="file-card"
-      className="mt-2 flex flex-col gap-4 border-t border-e2e-hairline pt-6"
+      className="mt-e2e-1 flex flex-col gap-e2e-2 border-t border-e2e-neutral-800 pt-e2e-3"
     >
-      <div className="relative max-h-96 bg-e2e-canvas ring-1 ring-e2e-hairline-strong" style={{ aspectRatio }}>
+      <div className="relative max-h-96 bg-e2e-black outline outline-e2e-neutral-800" style={{ aspectRatio }}>
         <Image
           src={fileUrl(file.pathname)}
-          alt={`Preview of ${file.name}`}
+          alt={`preview of ${file.name}`}
           fill
           unoptimized
           sizes="440px"
@@ -143,20 +140,22 @@ function FileCard({ file }: { file: Uploaded }) {
           onLoad={(event) => setAspectRatio(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
         />
       </div>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-e2e-2">
         <div className="min-w-0">
-          <p data-testid="file-name" className="truncate type-code-s text-e2e-text-bright">
+          <p data-testid="file-name" className="truncate type-code-s text-e2e-off-white">
             {file.name}
           </p>
-          <p data-testid="file-details" className="type-caption text-e2e-text-faint">
+          <p data-testid="file-details" className="mt-e2e-half type-caption text-e2e-neutral-500">
             {formatSize(file.size)} · {formatName(file.type)}
           </p>
         </div>
-        <div className="w-36 shrink-0">
-          <a href={fileUrl(file.pathname, { download: true })} download className={OUTLINE_BUTTON}>
-            Download
-          </a>
-        </div>
+        <a
+          href={fileUrl(file.pathname, { download: true })}
+          download
+          className={buttonClassName("outline", "w-36 shrink-0")}
+        >
+          download
+        </a>
       </div>
     </div>
   );

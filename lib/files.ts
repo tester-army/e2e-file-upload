@@ -1,26 +1,26 @@
 // Shared by the page and the upload token, so Blob refuses what the page would.
 
-const FORMATS: Record<string, string> = { "image/png": "PNG", "image/jpeg": "JPEG", "image/webp": "WebP" };
+const FORMATS: Record<string, string> = { "image/png": "png", "image/jpeg": "jpeg", "image/webp": "webp" };
 
 export const IMAGE_TYPES = Object.keys(FORMATS);
 
 // 1 MB is 1,000,000 bytes here, as in Finder.
 export const MAX_BYTES = 4_000_000;
 
-export const LIMITS = "PNG, JPEG, or WebP, up to 4 MB";
+export const LIMITS = "png, jpeg, or webp, up to 4 mb";
 
 export function checkFile(file: { name: string; type: string; size: number }): string | null {
-  if (!IMAGE_TYPES.includes(file.type)) return `${file.name} isn't a PNG, JPEG, or WebP image.`;
-  if (file.size > MAX_BYTES) return `${file.name} is ${formatSize(file.size)}. Images can be up to 4 MB.`;
+  if (!IMAGE_TYPES.includes(file.type)) return `${file.name} isn't a png, jpeg, or webp image.`;
+  if (file.size > MAX_BYTES) return `${file.name} is ${formatSize(file.size)}. images can be up to 4 mb.`;
   return null;
 }
 
 const decimal = new Intl.NumberFormat("en", { maximumFractionDigits: 1 });
 
 export function formatSize(bytes: number): string {
-  if (bytes < 1000) return `${bytes} B`;
-  if (bytes < 1_000_000) return `${decimal.format(bytes / 1000)} KB`;
-  return `${decimal.format(bytes / 1_000_000)} MB`;
+  if (bytes < 1000) return `${bytes} b`;
+  if (bytes < 1_000_000) return `${decimal.format(bytes / 1000)} kb`;
+  return `${decimal.format(bytes / 1_000_000)} mb`;
 }
 
 export function formatName(type: string): string {

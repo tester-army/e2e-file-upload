@@ -19,7 +19,7 @@ async function expectPhotoUploaded(
 ): Promise<string> {
   const pathname = await uploads.fromCard(screen);
   await expect(screen.getByTestId("file-name")).toHaveText(name);
-  await expect(screen.getByTestId("file-details")).toHaveText("207 KB · PNG");
+  await expect(screen.getByTestId("file-details")).toHaveText("207 kb · png");
 
   // The preview loaded through our file route, at the photo's own size.
   const previewSize = () =>
@@ -53,11 +53,11 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
 
   test("the download returns the same bytes", async ({ app, screen, browser, uploads }) => {
     await app.open("/");
-    await screen.getByLabel("Choose an image").setInputFiles(PHOTO.path);
-    await panel(screen).getByRole("button", "Upload").tap();
+    await screen.getByLabel("choose an image").setInputFiles(PHOTO.path);
+    await panel(screen).getByRole("button", "upload").tap();
     const pathname = await expectPhotoUploaded(screen, browser, uploads);
 
-    const file = await browser.waitForDownload(() => screen.getByRole("link", "Download").tap());
+    const file = await browser.waitForDownload(() => screen.getByRole("link", "download").tap());
     expect(file.suggestedFilename).toBe("photo.png");
 
     // The file on disk, the blob in the store, and the download are the same bytes.
@@ -73,11 +73,11 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
     try {
       await writeFile(join(folder, name), await readTestFile(PHOTO));
       await app.open("/");
-      await screen.getByLabel("Choose an image").setInputFiles(join(folder, name));
-      await panel(screen).getByRole("button", "Upload").tap();
+      await screen.getByLabel("choose an image").setInputFiles(join(folder, name));
+      await panel(screen).getByRole("button", "upload").tap();
       await expectPhotoUploaded(screen, browser, uploads, name);
 
-      const file = await browser.waitForDownload(() => screen.getByRole("link", "Download").tap());
+      const file = await browser.waitForDownload(() => screen.getByRole("link", "download").tap());
       expect(file.suggestedFilename).toBe(name);
       expect(sha256(await readFile(file.absolutePath))).toBe(sha256(await readTestFile(PHOTO)));
     } finally {
@@ -89,12 +89,12 @@ describe("Vercel Blob uploads", { tags: ["blob"], skip: blobSkip }, () => {
     await app.open("/");
 
     await dropFile(browser, PHOTO, ["dragenter"]);
-    await expect(screen.getByTestId("dropzone")).toContainText("Drop to add it");
+    await expect(screen.getByTestId("dropzone")).toContainText("drop to add it");
     await dropFile(browser, PHOTO, ["dragover", "drop"]);
-    await expect(screen.getByTestId("dropzone")).toContainText("Drop an image here");
-    await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 207 KB");
+    await expect(screen.getByTestId("dropzone")).toContainText("drop an image here");
+    await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 207 kb");
 
-    await panel(screen).getByRole("button", "Upload").tap();
+    await panel(screen).getByRole("button", "upload").tap();
     await expectPhotoUploaded(screen, browser, uploads);
   });
 

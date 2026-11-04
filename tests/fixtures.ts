@@ -30,7 +30,7 @@ export function sha256(bytes: Uint8Array): string {
 }
 
 // Next.js adds its own role="alert" (the route announcer), so queries stay inside the upload panel.
-export const panel = (screen: Screen) => screen.getByRole("region", "Upload an image");
+export const panel = (screen: Screen) => screen.getByRole("region", "upload an image");
 
 // e2e can't drag a file from the desktop, so the page builds the File and gets the events a real drop sends,
 // with `isTrusted` false.
@@ -70,7 +70,7 @@ export const test = base.extend<{ uploads: Uploads }>({
     await use({
       fromCard: async (screen) => {
         await expect(screen.getByTestId("file-card")).toBeVisible({ timeout: 30_000 });
-        const href = (await screen.getByRole("link", "Download").getAttribute("href")) ?? "";
+        const href = (await screen.getByRole("link", "download").getAttribute("href")) ?? "";
         const path = new URL(href, "http://app").pathname.replace(/^\/api\/files\//, "");
         const pathname = path.split("/").map(decodeURIComponent).join("/");
         pathnames.add(pathname);

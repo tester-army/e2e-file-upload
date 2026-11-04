@@ -9,16 +9,16 @@ import { PDF, PHOTO, dropFile, panel } from "./fixtures";
 
 test("the panel is ready for an image", async ({ app, screen }) => {
   await app.open("/");
-  await expect(screen.getByTestId("dropzone")).toContainText("Drop an image here");
-  await expect(screen.getByText("PNG, JPEG, or WebP, up to 4 MB")).toBeVisible();
-  await expect(panel(screen).getByRole("button", "Upload")).not.toBeEnabled();
+  await expect(screen.getByTestId("dropzone")).toContainText("drop an image here");
+  await expect(screen.getByText("png, jpeg, or webp, up to 4 mb")).toBeVisible();
+  await expect(panel(screen).getByRole("button", "upload")).not.toBeEnabled();
 });
 
 test("a PDF is refused", async ({ app, screen, browser }) => {
   await app.open("/");
   await dropFile(browser, PDF);
-  await expect(panel(screen).getByRole("alert")).toHaveText("invoice.pdf isn't a PNG, JPEG, or WebP image.");
-  await expect(panel(screen).getByRole("button", "Upload")).not.toBeEnabled();
+  await expect(panel(screen).getByRole("alert")).toHaveText("invoice.pdf isn't a png, jpeg, or webp image.");
+  await expect(panel(screen).getByRole("button", "upload")).not.toBeEnabled();
 });
 
 test("an image over 4 MB is refused", async ({ app, screen }) => {
@@ -29,9 +29,9 @@ test("an image over 4 MB is refused", async ({ app, screen }) => {
     await writeFile(big, Buffer.alloc(5_000_000));
 
     await app.open("/");
-    await screen.getByLabel("Choose an image").setInputFiles(big);
-    await expect(panel(screen).getByRole("alert")).toHaveText("big.png is 5 MB. Images can be up to 4 MB.");
-    await expect(panel(screen).getByRole("button", "Upload")).not.toBeEnabled();
+    await screen.getByLabel("choose an image").setInputFiles(big);
+    await expect(panel(screen).getByRole("alert")).toHaveText("big.png is 5 mb. images can be up to 4 mb.");
+    await expect(panel(screen).getByRole("button", "upload")).not.toBeEnabled();
   } finally {
     await rm(folder, { recursive: true, force: true });
   }
@@ -41,10 +41,10 @@ test("a failed upload says so", async ({ app, screen, browser }) => {
   // Our token route fails, so nothing reaches Blob and no key is needed.
   await browser.route("**/api/upload", (route) => route.fulfill({ status: 500, json: { error: "Down for the test" } }));
   await app.open("/");
-  await screen.getByLabel("Choose an image").setInputFiles(PHOTO.path);
-  await panel(screen).getByRole("button", "Upload").tap();
+  await screen.getByLabel("choose an image").setInputFiles(PHOTO.path);
+  await panel(screen).getByRole("button", "upload").tap();
 
-  await expect(panel(screen).getByRole("alert")).toHaveText("Couldn't upload photo.png. Try again.");
-  await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 207 KB");
-  await expect(panel(screen).getByRole("button", "Upload")).toBeEnabled();
+  await expect(panel(screen).getByRole("alert")).toHaveText("couldn't upload photo.png. try again.");
+  await expect(screen.getByTestId("picked-file")).toHaveText("photo.png · 207 kb");
+  await expect(panel(screen).getByRole("button", "upload")).toBeEnabled();
 });
